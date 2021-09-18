@@ -9,14 +9,16 @@ import string
 
 def parse(text):
     text = text.lower()
+    punctuations = '!?.,'
     new_text = ''
     for char in text:
         if char in string.punctuation:
             char += ' '
         new_text += char
-    text = ''.join([char for char in new_text if char not in string.punctuation])
+    text = ''.join([char for char in new_text if char not in punctuations])
+    words = text.split()
 
-    print((text))
+    print(words)
 
 
 word_counter_pos = {}
