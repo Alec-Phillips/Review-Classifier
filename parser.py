@@ -7,7 +7,7 @@ import nltk
 import string
 
 
-def parse(text):
+def get_words(text):
     text = text.lower()
     punctuations = '!?.,'
     new_text = ''
@@ -18,7 +18,15 @@ def parse(text):
     text = ''.join([char for char in new_text if char not in punctuations])
     words = text.split()
 
-    print(words)
+    # print(words)
+    return words
+
+def count_words(words, counter):
+    for word in words:
+        if word in counter:
+            counter[word] = counter.get(word) + 1
+        else:
+            counter[word] = 1
 
 
 word_counter_pos = {}
@@ -32,7 +40,9 @@ while i <= 1000:
     file_name = 'Homework2-Data/neg/neg_' + str(i) + '.txt'
     f = open(file_name)
     text = f.read()
-    parse(text)
+    words = get_words(text)
+    count_words(words, word_counter_neg)
+    print(word_counter_neg)
     f.close()
     break
 
