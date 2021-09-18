@@ -9,7 +9,7 @@ import string
 
 def get_words(text):
     text = text.lower()
-    punctuations = '!?.,'
+    punctuations = '!?.,&'
     new_text = ''
     for char in text:
         if char in string.punctuation:
@@ -31,20 +31,34 @@ def count_words(words, counter):
 
 word_counter_pos = {}
 word_counter_neg = {}
+# distinct_words = set()
 
 
 i = 1
 
 
 while i <= 1000:
-    file_name = 'Homework2-Data/neg/neg_' + str(i) + '.txt'
-    f = open(file_name)
+    negative_file_name = 'Homework2-Data/neg/neg_' + str(i) + '.txt'
+    f = open(negative_file_name)
     text = f.read()
     words = get_words(text)
     count_words(words, word_counter_neg)
-    print(word_counter_neg)
+    # print(word_counter_neg)
     f.close()
-    break
+
+    positive_file_name = 'Homework2-Data/pos/pos_' + str(i) + '.txt'
+    f = open(positive_file_name)
+    text = f.read()
+    words = get_words(text)
+    count_words(words, word_counter_pos)
+    # print(word_counter_pos)
+    f.close()
+
+    i += 1
+    # break
+
+# print(word_counter_pos['the'])
+
 
 
 
