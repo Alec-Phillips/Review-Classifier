@@ -34,6 +34,11 @@ class WordCounts:
         self.word_count_pos = {}
         self.word_count_neg = {}
         self.get_counts()
+        self.total_negative = 0
+        self.total_positive = 0
+        self.get_class_totals()
+        self.distinct_words = set()
+        self.get_distinct_words()
 
 
 
@@ -58,9 +63,21 @@ class WordCounts:
 
             i += 1
 
+    def get_class_totals(self):
+        for word in self.word_count_neg:
+            self.total_negative += self.word_count_neg.get(word)
+        for word in self.word_count_pos:
+            self.total_positive += self.word_count_pos.get(word)
 
-counts = WordCounts()
-print(counts.word_count_neg)
+    def get_distinct_words(self):
+        for word in self.word_count_neg:
+            self.distinct_words.add(word)
+        for word in self.word_count_pos:
+            self.distinct_words.add(word)
+
+
+# counts = WordCounts()
+# print(counts.word_count_neg)
 
 
 
