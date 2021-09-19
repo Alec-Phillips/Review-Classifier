@@ -43,7 +43,7 @@ class BayesClassifier:
 
 
 def test():
-    classifier = BayesClassifier('rainbows')
+    classifier = BayesClassifier('great food, love the atmosphere')
     print(classifier.result)
 
 

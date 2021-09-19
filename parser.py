@@ -38,11 +38,19 @@ class WordCounts:
         self.word_count_pos = {}
         self.word_count_neg = {}
         self.word_count_total = {}
-        self.get_counts()
+        # self.get_counts()
+        # self.clean_data()
         self.total_negative = 0
         self.total_positive = 0
-        self.get_class_totals()
+        # self.get_class_totals()
         self.distinct_words = set()
+        # self.get_distinct_words()
+        self.setup()
+
+    def setup(self):
+        self.get_counts()
+        self.clean_data()
+        self.get_class_totals()
         self.get_distinct_words()
 
 
@@ -70,12 +78,6 @@ class WordCounts:
 
 
     def clean_data(self):
-        #temp_list = []
-        # for word in self.word_count_total:
-        #     if self.word_count_total.get(word)<4 or self.word_count_total.get(word)>554:
-        #         temp_list.append(word)
-        # for word in temp_list:
-        #     del self.word_count_total[word]
 
         temp_list = []
         for word in self.word_count_pos:
@@ -90,15 +92,6 @@ class WordCounts:
                 temp_list.append(word)
         for word in temp_list:
             del self.word_count_neg[word]
-
-        # new_list = sorted(self.word_count_neg.items(), key=lambda x: x[1], reverse=False)
-        #
-        # for item in new_list:
-        #     print(item)
-        # print(new_list)
-
-counter = WordCounts()
-counter.clean_data()
 
 
     def get_class_totals(self):
