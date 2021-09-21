@@ -38,13 +38,9 @@ class WordCounts:
         self.word_count_pos = {}
         self.word_count_neg = {}
         self.word_count_total = {}
-        # self.get_counts()
-        # self.clean_data()
         self.total_negative = 0
         self.total_positive = 0
-        # self.get_class_totals()
         self.distinct_words = set()
-        # self.get_distinct_words()
         self.setup()
 
     def setup(self):
