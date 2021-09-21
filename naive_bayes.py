@@ -14,6 +14,13 @@ class BayesClassifier:
         self.neg_prob = 0.5
         self.result = self.get_probabilities()
 
+    def update_text(self, new_text):
+        self.words = get_words(new_text)
+        self.bag_of_words = set(self.words)
+        self.pos_prob = 0.5
+        self.neg_prob = 0.5
+        self.result = self.get_probabilities()
+
     def get_probabilities(self):
         prob_by_word = {}
         for word in self.bag_of_words:
@@ -47,5 +54,47 @@ def test():
     print(classifier.result)
 
 
-test()
+# test()
 
+def apply_classifier():
+
+    # negative_ratings_file = open('Homework2-Data/ratings/negative.txt')
+    # negative_ratings = [int(x[-3]) for x in negative_ratings_file.read().splitlines()]
+
+    # positive_ratings_file = open('Homework2-Data/ratings/positive.txt')
+    # positive_ratings = [int(x[-3]) for x in positive_ratings_file.read().splitlines()]
+    # return
+
+    fake_reviews = []
+    classifier = BayesClassifier('')
+
+    i = 1
+
+    while i <= 1000:
+        negative_file_name = 'Homework2-Data/neg/neg_' + str(i) + '.txt'
+        f = open(negative_file_name)
+        text = f.read()
+        classifier.update_text(text)
+        result = classifier.result
+        if result == 1:
+            fake_reviews.append(negative_file_name)
+        f.close()
+
+        positive_file_name = 'Homework2-Data/pos/pos_' + str(i) + '.txt'
+        f = open(positive_file_name)
+        text = f.read()
+        classifier.update_text(text)
+        result = classifier.result
+        if result == 0:
+            fake_reviews.append(positive_file_name)
+        f.close()
+
+        i += 1
+        # print(i)
+    
+    for review in fake_reviews:
+        print(review)
+    print(len(fake_reviews))
+
+
+apply_classifier()

@@ -55,6 +55,12 @@ class WordCounts:
         
         i = 1
 
+        # negative_ratings_file = open('Homework2-Data/ratings/negative.txt')
+        # negative_ratings = [int(x[-3]) for x in negative_ratings_file.read().splitlines()]
+
+        # positive_ratings_file = open('Homework2-Data/ratings/positive.txt')
+        # positive_ratings = [int(x[-3]) for x in positive_ratings_file.read().splitlines()]
+
         while i <= 1000:
             negative_file_name = 'Homework2-Data/neg/neg_' + str(i) + '.txt'
             f = open(negative_file_name)
@@ -77,14 +83,14 @@ class WordCounts:
 
         temp_list = []
         for word in self.word_count_pos:
-            if self.word_count_pos.get(word) < 4 or self.word_count_pos.get(word) > 450:
+            if self.word_count_pos.get(word) < 1 or self.word_count_pos.get(word) > 1000:
                 temp_list.append(word)
         for word in temp_list:
             del self.word_count_pos[word]
 
         temp_list = []
         for word in self.word_count_neg:
-            if self.word_count_neg.get(word) < 4 or self.word_count_neg.get(word) > 400:
+            if self.word_count_neg.get(word) < 1 or self.word_count_neg.get(word) > 1000:
                 temp_list.append(word)
         for word in temp_list:
             del self.word_count_neg[word]
