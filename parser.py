@@ -77,14 +77,14 @@ class WordCounts:
 
         temp_list = []
         for word in self.word_count_pos:
-            if self.word_count_pos.get(word) < 4 or self.word_count_pos.get(word) > 450:
+            if self.word_count_pos.get(word) < 1 or self.word_count_pos.get(word) > 1000:
                 temp_list.append(word)
         for word in temp_list:
             del self.word_count_pos[word]
 
         temp_list = []
         for word in self.word_count_neg:
-            if self.word_count_neg.get(word) < 4 or self.word_count_neg.get(word) > 400:
+            if self.word_count_neg.get(word) < 1 or self.word_count_neg.get(word) > 1000:
                 temp_list.append(word)
         for word in temp_list:
             del self.word_count_neg[word]
