@@ -58,6 +58,13 @@ def test():
 
 def apply_classifier():
 
+    # negative_ratings_file = open('Homework2-Data/ratings/negative.txt')
+    # negative_ratings = [int(x[-3]) for x in negative_ratings_file.read().splitlines()]
+
+    # positive_ratings_file = open('Homework2-Data/ratings/positive.txt')
+    # positive_ratings = [int(x[-3]) for x in positive_ratings_file.read().splitlines()]
+    # return
+
     fake_reviews = []
     classifier = BayesClassifier('')
 
