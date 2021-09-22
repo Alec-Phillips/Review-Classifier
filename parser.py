@@ -7,22 +7,30 @@ import nltk
 nltk.download('punkt')
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
+ps = PorterStemmer()
+
+# words = word_tokenize('this is a sentence')
+# print(words)
 
 import string
 
 
 def get_words(text):
     text = text.lower()
-    punctuations = '!?.,&(/)-;'
-    new_text = ''
-    for char in text:
-        if char in string.punctuation:
-            char += ' '
-        new_text += char
-    text = ''.join([char for char in new_text if char not in punctuations])
-    words = text.split()
-
+    words = word_tokenize(text)
+    words = [ps.stem(word) for word in words]
+    words = [word for word in words if word not in string.punctuation]
     return words
+    # punctuations = '!?.,&(/)-;'
+    # new_text = ''
+    # for char in text:
+    #     if char in string.punctuation:
+    #         char += ' '
+    #     new_text += char
+    # text = ''.join([char for char in new_text if char not in punctuations])
+    # words = text.split()
+
+    # return words
 
 def count_words(words, counter, total):
     for word in words:
@@ -115,6 +123,9 @@ class WordCounts:
 
 # counts = WordCounts()
 # print(counts.word_count_neg)
+
+words = get_words('this is a running list of words to check the data processing functions!')
+print(words)
 
 
 
