@@ -1,22 +1,21 @@
 
-import nltk
-from nltk import FreqDist
-from collections import defaultdict
 
 class BayesClassifier:
 
-    def __init__(self, bag_of_words, labeled_reviews):
+    def __init__(self, distinct_words, labeled_reviews):
         '''
         bag_of_words = the distinct stems found in the data being classified
         labeled_reviews = the training data that the classifier will use
         '''
-        self.bag_of_words = bag_of_words
+        self.distinct_words = distinct_words
         self.labeled_reviews = labeled_reviews
 
         # a mapping from stem -> int for positive reviews
         self.positive_stem_counts = {} 
         # a mapping from stem -> int for negative reviews
         self.negative_stem_counts = {}
+        self.total_negative = 0
+        self.total_positive = 0
         # maps label -> pr[label]
         self.label_frequency_distribution = {}
         # maps feature (stem) -> (pr[feature | pos], pr[feature | neg])
@@ -39,6 +38,7 @@ class BayesClassifier:
                 label_frequencies['pos'] = label_frequencies.get('pos') + 1
                 for stem in review[0]:
                     total_stems += 1
+                    self.total_positive += 1
                     if stem in self.positive_stem_counts:
                         self.positive_stem_counts[stem] = self.positive_stem_counts.get(stem) + 1
                     else:
@@ -48,6 +48,7 @@ class BayesClassifier:
                 label_frequencies['neg'] = label_frequencies.get('neg') + 1
                 for stem in review[0]:
                     total_stems += 1
+                    self.total_negative += 1
                     if stem in self.negative_stem_counts:
                         self.negative_stem_counts[stem] = self.negative_stem_counts.get(stem) + 1
                     else:
@@ -67,7 +68,11 @@ class BayesClassifier:
                 self.feature_frequency_distribution[stem] = {'pos': 0, 'neg': (count/total_stems)/self.label_frequency_distribution['neg']}
 
     def report_useful_features(self, num_returned):
-
+        '''
+        does a basic analysis of stem usefulness
+        determines the 'num_returned' most useful positive stems as well as the
+        'num_returned' most useful negative stems
+        '''
         pos_usefulness = []
         neg_usefulness = []
         for feature, distribution in self.feature_frequency_distribution.items():
@@ -90,6 +95,57 @@ class BayesClassifier:
 
         return most_useful_pos, most_useful_neg
         
-    def classify(self):
-        # TODO: apply the bayesian classification to the testing data
-        pass
+    def classify(self, stems):
+        '''
+        classifies a single review as positive or negative
+        returns 1 if classified as positive, 0 if classified as negative
+        '''
+        prob_by_word = {}
+        prob_negative = self.label_frequency_distribution['neg']
+        prob_positive = self.label_frequency_distribution['pos']
+        for stem in stems:
+            if stem in self.negative_stem_counts:
+                numerator = self.negative_stem_counts.get(stem) + 1
+            else:
+                numerator = 1
+            denominator = self.total_negative + len(self.distinct_words)
+            prob_by_word[stem] = numerator / denominator
+
+        for stem in prob_by_word:
+            prob_negative *= prob_by_word.get(stem)
+
+        prob_by_word = {}
+        for stem in stems:
+            if stem in self.positive_stem_counts:
+                numerator = self.positive_stem_counts.get(stem) + 1
+            else:
+                numerator = 1
+            denominator = self.total_positive + len(self.distinct_words)
+            prob_by_word[stem] = numerator / denominator
+
+        for stem in prob_by_word:
+            prob_positive *= prob_by_word.get(stem)
+        
+        return 1 if prob_positive > prob_negative else 0
+
+    def test(self, testing_data):
+        '''
+        apply the classifier to the testing data set
+        returns the percent correct and the list of potentially fake reviews
+        '''
+        correct = 0
+        incorrect = 0
+
+        fake = []
+        for review in testing_data:
+            stems = review[0]
+            c = 1 if review[1] == 'pos' else 0
+            classification = self.classify(stems)
+            if classification == c:
+                correct += 1
+            else:
+                incorrect += 1
+                fake.append((c, review[2]))
+        
+        return correct / (correct + incorrect), fake
+

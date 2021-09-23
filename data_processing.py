@@ -2,11 +2,8 @@
 import nltk
 import string
 import random
-import pprint
-from pprint import pp
-from importlib import reload
 
-from nltk.classify import naivebayes
+from importlib import reload
 
 import naive_bayes_2
 reload(naive_bayes_2)
@@ -25,7 +22,7 @@ while i <= 1000:
     text = f.read()
     text = ''.join([char for char in text if char not in string.punctuation])
     f.close()
-    new_neg_data_point = (text.lower(), 'neg')
+    new_neg_data_point = (text.lower(), 'neg', i)
     labeled_reviews.append(new_neg_data_point)
 
     positive_file_name = 'Homework2-Data/pos/pos_' + str(i) + '.txt'
@@ -33,7 +30,7 @@ while i <= 1000:
     text = f.read()
     text = ''.join([char for char in text if char not in string.punctuation])
     f.close()
-    new_pos_data_point = (text.lower(), 'pos')
+    new_pos_data_point = (text.lower(), 'pos', i)
     labeled_reviews.append(new_pos_data_point)
 
     i += 1
@@ -43,8 +40,7 @@ while i <= 1000:
 nltk.download('punkt')
 from nltk.tokenize import word_tokenize
 tokens = set(word for words in labeled_reviews for word in word_tokenize(words[0]))
-labeled_reviews = [(word_tokenize(review[0]), review[1]) for review in labeled_reviews]
-# pp(labeled_reviews[:3])
+labeled_reviews = [(word_tokenize(review[0]), review[1], review[2]) for review in labeled_reviews]
 # ------------------------------------------------------------------------------
 
 # remove stopwords -------------------------------------------------------------
@@ -52,15 +48,14 @@ nltk.download('stopwords')
 from nltk.corpus import stopwords
 stopwords = stopwords.words('english')
 tokens = [word for word in tokens if word not in stopwords]
-labeled_reviews = [([token for token in review[0] if token not in stopwords], review[1]) for review in labeled_reviews]
+labeled_reviews = [([token for token in review[0] if token not in stopwords], review[1], review[2]) for review in labeled_reviews]
 # ------------------------------------------------------------------------------
 
 # remove stopwords -------------------------------------------------------------
 from nltk.stem.porter import PorterStemmer
 stemmer = PorterStemmer()
 stems = [stemmer.stem(word) for word in tokens]
-labeled_reviews = [([stemmer.stem(token) for token in review[0]], review[1]) for review in labeled_reviews]
-# pp(stems)
+labeled_reviews = [([stemmer.stem(token) for token in review[0]], review[1], review[2]) for review in labeled_reviews]
 # ------------------------------------------------------------------------------
 
 # train and test using the naive bayes -----------------------------------------
@@ -77,5 +72,11 @@ for label in most_useful_pos:
 print('\nneg:')
 for label in most_useful_neg:
     print('\t', label)
+
+percent_correct, fake = classifier.test(testing)
+fake = sorted(fake, key=lambda x: x[1])
+# print(fake[:25])
+print(len(fake))
+print(f'Percent Correct: {percent_correct * 100}')
 
 
