@@ -1,5 +1,9 @@
 # first file: Naive Bayes Classifier
 
+'''
+takes input 
+'''
+
 from parser import get_words
 from parser import WordCounts
 

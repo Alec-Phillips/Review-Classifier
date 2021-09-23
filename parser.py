@@ -3,22 +3,34 @@
 #
 
 
-# import nltk
+import nltk
+nltk.download('punkt')
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
+ps = PorterStemmer()
+
+# words = word_tokenize('this is a sentence')
+# print(words)
+
 import string
 
 
 def get_words(text):
     text = text.lower()
-    punctuations = '!?.,&(/)-;'
-    new_text = ''
-    for char in text:
-        if char in string.punctuation:
-            char += ' '
-        new_text += char
-    text = ''.join([char for char in new_text if char not in punctuations])
-    words = text.split()
-
+    words = word_tokenize(text)
+    words = [ps.stem(word) for word in words]
+    words = [word for word in words if word not in string.punctuation]
     return words
+    # punctuations = '!?.,&(/)-;'
+    # new_text = ''
+    # for char in text:
+    #     if char in string.punctuation:
+    #         char += ' '
+    #     new_text += char
+    # text = ''.join([char for char in new_text if char not in punctuations])
+    # words = text.split()
+
+    # return words
 
 def count_words(words, counter, total):
     for word in words:
@@ -32,7 +44,49 @@ def count_words(words, counter, total):
             total[word] = 1
 
 
+class DataPoint:
+    '''
+    each 'data point' consists of a document and its associated class
+    in this case, document = review, class = pos/neg
+    '''
+
+    def __init__(self, d, c):
+        '''
+        d = document/review
+        c = class (positive or negative)
+        '''
+        self.d = d
+        self.c = c
+
+    # def __repr__(self):
+    #     print(self.d, self.c)
+
+
+class Data:
+    '''
+    container to store all the data and its classification
+    this can then be split and run through the classifier
+    '''
+
+    def __init__(self):
+        '''
+        data is the list of DataPoint objects
+        '''
+        self.data = []
+
+    # def __repr__(self):
+    #     for data_point in self.data:
+    #         print(data_point)
+
+    def add_data_point(self, data_point):
+        self.data.append(data_point)
+
 class WordCounts:
+    '''
+    holds the mappings of word to their associated count
+    has one mapping for positive and one for negative
+    has all the data needed to compute the naive bayes classification
+    '''
 
     def __init__(self):
         self.word_count_pos = {}
@@ -52,14 +106,13 @@ class WordCounts:
 
 
     def get_counts(self):
-        
-        i = 1
 
         # negative_ratings_file = open('Homework2-Data/ratings/negative.txt')
         # negative_ratings = [int(x[-3]) for x in negative_ratings_file.read().splitlines()]
 
         # positive_ratings_file = open('Homework2-Data/ratings/positive.txt')
         # positive_ratings = [int(x[-3]) for x in positive_ratings_file.read().splitlines()]
+        i = 1
 
         while i <= 1000:
             negative_file_name = 'Homework2-Data/neg/neg_' + str(i) + '.txt'
@@ -109,8 +162,35 @@ class WordCounts:
             self.distinct_words.add(word)
 
 
-# counts = WordCounts()
-# print(counts.word_count_neg)
+def retrieve_data(data_container):
+    
+    i = 1
+        
+    while i <= 1000:
+        negative_file_name = 'Homework2-Data/neg/neg_' + str(i) + '.txt'
+        f = open(negative_file_name)
+        text = f.read()
+        f.close()
+        new_neg_data_point = DataPoint(text.lower(), 'neg')
+        data_container.add_data_point(new_neg_data_point)
+
+        positive_file_name = 'Homework2-Data/pos/pos_' + str(i) + '.txt'
+        f = open(positive_file_name)
+        text = f.read()
+        f.close()
+        new_pos_data_point = DataPoint(text.lower(), 'pos')
+        data_container.add_data_point(new_pos_data_point)
+
+        i += 1
+
+def train():
+    data = Data()
+    retrieve_data(data)
+    print(data)
+
+train()
+
+
 
 
 
