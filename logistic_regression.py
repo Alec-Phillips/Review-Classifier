@@ -20,7 +20,13 @@ class LogisticRegressionClassifier:
         TODO: implement gradient descent based on pseudocode from textbook
         '''
         w = [0 * (len(x) + 1)]
-        # for i in range(len(x)):
+        for i in range(1000):
+            current_vector = [0 * (len(x) + 1)]
+            for i in range(len(x)):
+                # TODO: fix the current term calculation for the last term (the bias)
+                current_term = self.sigmoid_function(self.get_y_hat(w[:-1], x, w[-1])) * x[i]
+                current_vector[i] = current_term
+
 
 
     def loss_function(self, y, y_hat):
@@ -41,7 +47,17 @@ class LogisticRegressionClassifier:
         '''
         return 1/(1+(math.e**(-1*z)))
 
+    def get_y_hat(self, w, x, b):
+        '''
+        returns the dot product of w and x and sums that result with b
+        '''
+        dot = 0
+        for i, weight in enumerate(w):
+            dot += (weight * x[i])
+        return dot + b
+
 
 log_reg = LogisticRegressionClassifier()
-dist = log_reg.loss_function(1, 0)
-print(dist)
+print(log_reg.sigmoid_function(0))
+# dist = log_reg.loss_function(1, 0)
+# print(dist)
