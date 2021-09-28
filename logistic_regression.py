@@ -1,6 +1,8 @@
 
 import math
 
+from feature_count_funcs import feature_count_funcs
+
 class LogisticRegressionClassifier:
 
     def __init__(self):
@@ -9,25 +11,30 @@ class LogisticRegressionClassifier:
         '''
         pass
 
-    def gradient_descent(self, x, y):
+    def gradient_descent(self, x_list, y):
         '''
-        param x: the vector of feature results
-        param y: the vector of correct labels
-        param w: the vector of the weights and also the bias
+        param x: the list of vectors of feature results for each review
+        param y: the vector of correct labels for each review
         also utilizes:
             our loss_function
             our sigmoid function and dot product
         TODO: implement gradient descent based on pseudocode from textbook
         '''
-        w = [0 * (len(x) + 1)]
-        for i in range(1000):
-            current_vector = [0 * (len(x) + 1)]
+        learning_rate = .1
+        w = [0] * (len(x_list[0]) + 1)
+        for review_counter, x in enumerate(x_list):
+            current_vector = [0] * (len(x) + 1)
             for i in range(len(x)):
                 # TODO: fix the current term calculation for the last term (the bias)
-                current_term = self.sigmoid_function(self.get_y_hat(w[:-1], x, w[-1])) * x[i]
+                current_term = (self.sigmoid_function(self.get_y_hat(w[:-1], x, w[-1])) - y[review_counter]) * x[i]
                 current_vector[i] = current_term
-
-
+            final_term = (self.sigmoid_function(self.get_y_hat(w[:-1], x, w[-1])) - y[review_counter])
+            current_vector[-1] = final_term
+            for i in range(len(current_vector)):
+                current_vector[i] *= learning_rate
+            for i in range(len(w)):
+                w[i] -= current_vector[i]
+        return w
 
     def loss_function(self, y, y_hat):
         '''
@@ -56,8 +63,34 @@ class LogisticRegressionClassifier:
             dot += (weight * x[i])
         return dot + b
 
+    def train(self, training_data, pos_word_set, neg_word_set):
+        '''
+        determines the feature counts for each review
+        and uses gradient descent to optimize weights
+        for each feature
+        returns: the vector of optimized weights
+        '''
+        feature_counts = []
+        labels = []
+        for review in training_data:
+            if review[1] == 'pos':
+                labels.append(1)
+            else:
+                labels.append(0)
+            curr_feature_counts = []
+            # for func in feature_count_funcs:
+            count1 = feature_count_funcs[0](pos_word_set, review[0])
+            curr_feature_counts.append(count1)
+            count2 = feature_count_funcs[1](neg_word_set, review[0])
+            curr_feature_counts.append(count2)
+            feature_counts.append(curr_feature_counts)
+        weights = self.gradient_descent(feature_counts, labels)
+        return weights
 
-log_reg = LogisticRegressionClassifier()
-print(log_reg.sigmoid_function(0))
+
+
+# log_reg = LogisticRegressionClassifier()
+# print(log_reg.sigmoid_function(0))
 # dist = log_reg.loss_function(1, 0)
 # print(dist)
+# print(log_reg.gradient_descent([[3, 2]], [1]))
