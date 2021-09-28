@@ -9,7 +9,8 @@ class LogisticRegressionClassifier:
         '''
         TODO: include params needed to perform gradient descent
         '''
-        pass
+        self.weights = []
+        self.bias = 0
 
     def gradient_descent(self, x_list, y):
         '''
@@ -18,7 +19,6 @@ class LogisticRegressionClassifier:
         also utilizes:
             our loss_function
             our sigmoid function and dot product
-        TODO: implement gradient descent based on pseudocode from textbook
         '''
         learning_rate = .1
         w = [0] * (len(x_list[0]) + 1)
@@ -33,6 +33,8 @@ class LogisticRegressionClassifier:
                 current_vector[i] *= learning_rate
             for i in range(len(w)):
                 w[i] -= current_vector[i]
+        self.weights = w[:-1]
+        self.bias = w[-1]
         return w
 
     def loss_function(self, y, y_hat):
@@ -84,6 +86,15 @@ class LogisticRegressionClassifier:
             feature_counts.append(curr_feature_counts)
         weights = self.gradient_descent(feature_counts, labels)
         return weights
+
+    def classify(self, feature_results):
+        '''
+        classifies a single review based on its feature results and
+        the computed weights
+        '''
+        dot_product = self.get_y_hat(self.weights, feature_results, self.bias)
+        prediction = self.sigmoid_function(dot_product)
+        return 1 if prediction >= .5 else 0
 
 
 
