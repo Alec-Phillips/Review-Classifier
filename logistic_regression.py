@@ -25,7 +25,6 @@ class LogisticRegressionClassifier:
         for review_counter, x in enumerate(x_list):
             current_vector = [0] * (len(x) + 1)
             for i in range(len(x)):
-                # TODO: fix the current term calculation for the last term (the bias)
                 current_term = (self.sigmoid_function(self.get_y_hat(w[:-1], x, w[-1])) - y[review_counter]) * x[i]
                 current_vector[i] = current_term
             final_term = (self.sigmoid_function(self.get_y_hat(w[:-1], x, w[-1])) - y[review_counter])
@@ -41,7 +40,6 @@ class LogisticRegressionClassifier:
         param y: the correct classification
         param y_hat: the estimated classification
         return: the 'distance' between y and y_hat
-        TODO: implement loss functions based on algorithm in textbook
         implements the Cross Entropy Loss function based on the textbook
         '''
         return -1 * ( (y * math.log(y_hat)) + ((1 - y) * math.log(1 - y_hat)) )
