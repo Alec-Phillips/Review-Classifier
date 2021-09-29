@@ -93,14 +93,105 @@ for item in most_pos:
 for item in most_neg:
     negative_stems.add(item[1])
 
-log_reg_classifier = LogisticRegressionClassifier()
-weights = log_reg_classifier.train(training, positive_stems, negative_stems)
+log_reg_classifier = LogisticRegressionClassifier(training)
+# weights = log_reg_classifier.train(training, positive_stems, negative_stems)
 print('')
-for i, weight in enumerate(weights):
-    if i == len(weights) - 1:
-        print(f'Bias: {weight}')
-    else:
-        print(f'Weight {i}: {weight}')
+# for i, weight in enumerate(weights):
+#     if i == len(weights) - 1:
+#         print(f'Bias: {weight}')
+#     else:
+#         print(f'Weight {i}: {weight}')
+
+log_reg_classifier.count_bigrams()
+pos_bigrams, neg_bigrams = log_reg_classifier.most_useful_bigrams(100)
+pos_bigram_set = set()
+neg_bigram_set = set()
+for item in pos_bigrams:
+    pos_bigram_set.add(item[1])
+for item in neg_bigrams:
+    neg_bigram_set.add(item[1])
+# print(pos_bigrams)
+# print(neg_bigrams)
+
+def count_feat1(review):
+    pos_count = 0
+    for word in review:
+        if word in positive_stems:
+            pos_count += 1
+    return pos_count
+
+def count_feat2(review):
+    neg_count = 0
+    for word in review:
+        if word in negative_stems:
+            neg_count += 1
+    return neg_count
+
+# def count_feat3(review):
+#     not_count = 0
+#     for word in review:
+#         if word == "not":
+#             not_count += 1
+#     return not_count
+
+def count_feat4(review):
+    count = 0
+    for i in range(len(review) - 1):
+        bigram = review[i] + ' ' + review[i + 1]
+        if bigram in pos_bigram_set:
+            count += 1
+    return count
+
+def count_feat5(review):
+    count = 0
+    for i in range(len(review) - 1):
+        bigram = review[i] + ' ' + review[i + 1]
+        if bigram in neg_bigram_set:
+            count += 1
+    return count
+
+feature_count_vectors = []
+labels = []
+for tup in training:
+    review = tup[0]
+    feature_counts = []
+    feature_counts.append(count_feat1(review))
+    feature_counts.append(count_feat2(review))
+    # feature_counts.append(count_feat3(review))
+    feature_counts.append(count_feat4(review))
+    feature_counts.append(count_feat5(review))
+    feature_count_vectors.append(feature_counts)
+    label = 1 if tup[1] == 'pos' else 0
+    labels.append(label)
+
+# for f_c in feature_count_vectors:
+#     if f_c[3] != 0 or f_c[4] != 0:
+#         print('yes')
+weights = log_reg_classifier.gradient_descent(feature_count_vectors, labels)
+# print(weights)
+
+testing_feature_count_vectors = []
+testing_labels = []
+for tup in testing:
+    review = tup[0]
+    feature_counts = []
+    feature_counts.append(count_feat1(review))
+    feature_counts.append(count_feat2(review))
+    # feature_counts.append(count_feat3(review))
+    feature_counts.append(count_feat4(review))
+    feature_counts.append(count_feat5(review))
+    testing_feature_count_vectors.append(feature_counts)
+    label = 1 if tup[1] == 'pos' else 0
+    # print(label, tup[1])
+    # print(review, feature_counts)
+    testing_labels.append(label)
+
+incorrect = log_reg_classifier.test(testing, testing_feature_count_vectors)
+print((1000 - incorrect) / 10)
+# print(incorrect)
+
+
+
 
 
 

@@ -5,12 +5,16 @@ from feature_count_funcs import feature_count_funcs
 
 class LogisticRegressionClassifier:
 
-    def __init__(self):
+    def __init__(self, labeled_reviews):
         '''
         TODO: include params needed to perform gradient descent
         '''
         self.weights = []
         self.bias = 0
+        self.labeled_reviews = labeled_reviews
+        self.positive_bigram_counts = {}
+        self.negative_bigram_counts = {}
+        self.bigram_frequency_distribution = {}
 
     def gradient_descent(self, x_list, y):
         '''
@@ -95,6 +99,87 @@ class LogisticRegressionClassifier:
         dot_product = self.get_y_hat(self.weights, feature_results, self.bias)
         prediction = self.sigmoid_function(dot_product)
         return 1 if prediction >= .5 else 0
+
+    def count_bigrams(self):
+        '''
+        gets the:
+            most useful positive bigrams
+            most useful negative bigrams
+        '''
+        label_frequencies = {'pos': 0, 'neg': 0}
+        total_stems = 0
+        for review in self.labeled_reviews:
+            if review[1] == 'pos':
+                label_frequencies['pos'] = label_frequencies.get('pos') + 1
+                for i in range(len(review[0]) - 1):
+                    total_stems += 1
+                    bigram = review[0][i] + ' ' + review[0][i + 1]
+                    # self.total_positive += 1
+                    if bigram in self.positive_bigram_counts:
+                        self.positive_bigram_counts[bigram] = self.positive_bigram_counts.get(bigram) + 1
+                    else:
+                        self.positive_bigram_counts[bigram] = 1
+                        # self.distinct_stems.add(stem)
+            else:
+                label_frequencies['neg'] = label_frequencies.get('neg') + 1
+                for i in range(len(review[0]) - 1):
+                    total_stems += 1
+                    bigram = review[0][i] + ' ' + review[0][i + 1]
+                    # self.total_negative += 1
+                    if bigram in self.negative_bigram_counts:
+                        self.negative_bigram_counts[bigram] = self.negative_bigram_counts.get(bigram) + 1
+                    else:
+                        self.negative_bigram_counts[bigram] = 1
+                        # self.distinct_stems.add(stem)
+        total_labels = 0
+        for _, frequency in label_frequencies.items():
+            total_labels += frequency
+        for label, frequency in label_frequencies.items():
+            self.bigram_frequency_distribution[label] = frequency / total_labels
+        for stem, count in self.positive_bigram_counts.items():
+            self.bigram_frequency_distribution[stem] = {'pos': (count/total_stems)/self.bigram_frequency_distribution['pos'], 'neg': 0}
+        for stem, count in self.negative_bigram_counts.items():
+            if stem in self.bigram_frequency_distribution:
+                self.bigram_frequency_distribution[stem]['neg'] = (count/total_stems)/self.bigram_frequency_distribution['neg']
+            else:
+                self.bigram_frequency_distribution[stem] = {'pos': 0, 'neg': (count/total_stems)/self.bigram_frequency_distribution['neg']}
+
+    def most_useful_bigrams(self, num_returned):
+        pos_usefulness = []
+        neg_usefulness = []
+        for feature, distribution in self.bigram_frequency_distribution.items():
+            try:
+                feature_pos_usefulness = distribution['pos'] / distribution['neg']
+                pos_usefulness.append([feature_pos_usefulness, feature])
+            except:
+                pass
+            try:
+                feature_neg_usefulness = distribution['neg'] / distribution['pos']
+                neg_usefulness.append([feature_neg_usefulness, feature])
+            except:
+                pass
+
+        pos_usefulness.sort(reverse=True)
+        neg_usefulness.sort(reverse=True)
+
+        most_useful_pos = pos_usefulness[:num_returned]
+        most_useful_neg = neg_usefulness[:num_returned]
+
+        return most_useful_pos, most_useful_neg
+
+    def test(self, testing_data, feature_count_vectors):
+        incorrect = 0
+        for i, tup in enumerate(testing_data):
+            review = tup[0]
+            label = 1 if tup[1] == 'pos' else 0
+            current_feature_counts = feature_count_vectors[i]
+            z = self.get_y_hat(self.weights, current_feature_counts, self.bias)
+            prob_pos = self.sigmoid_function(z)
+            # print(prob_pos, label)
+            prediction = 1 if prob_pos > .5 else 0
+            if prediction != label:
+                incorrect += 1
+        return incorrect
 
 
 
