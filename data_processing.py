@@ -135,16 +135,16 @@ def count_feat2(review):
             not_count += 1
     return neg_count
 
-def count_feat3(review):
-    count = 0
-    for word in review:
-        if word == "amaz":
-            count += 1
-        if word == "great":
-            count += 1
-        if word == "works":
-            count += 1
-    return count
+# def count_feat3(review):
+#     count = 0
+#     for word in review:
+#         if word == "amaz":
+#             count += 1
+#         if word == "great":
+#             count += 1
+#         if word == "works":
+#             count += 1
+#     return count
 
 def count_feat4(review):
     count = 0
@@ -169,7 +169,7 @@ for tup in training:
     feature_counts = []
     feature_counts.append(count_feat1(review))
     feature_counts.append(count_feat2(review))
-    feature_counts.append(count_feat3(review))
+    # feature_counts.append(count_feat3(review))
     feature_counts.append(count_feat4(review))
     feature_counts.append(count_feat5(review))
     feature_count_vectors.append(feature_counts)
@@ -189,7 +189,7 @@ for tup in testing:
     feature_counts = []
     feature_counts.append(count_feat1(review))
     feature_counts.append(count_feat2(review))
-    feature_counts.append(count_feat3(review))
+    # feature_counts.append(count_feat3(review))
     feature_counts.append(count_feat4(review))
     feature_counts.append(count_feat5(review))
     testing_feature_count_vectors.append(feature_counts)
