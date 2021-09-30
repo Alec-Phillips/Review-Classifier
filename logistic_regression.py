@@ -15,6 +15,13 @@ class LogisticRegressionClassifier:
         self.positive_bigram_counts = {}
         self.negative_bigram_counts = {}
         self.bigram_frequency_distribution = {}
+        self.true_positive = 0
+        self.false_positive = 0
+        self.true_negative = 0
+        self.false_negative = 0
+        self.precision = 0
+        self.recall = 0
+        self.f_measure = 0
 
     def gradient_descent(self, x_list, y):
         '''
@@ -179,12 +186,24 @@ class LogisticRegressionClassifier:
             prediction = 1 if prob_pos > .5 else 0
             if prediction != label:
                 incorrect += 1
+            if prediction == 1 and label == 1:
+                self.true_positive += 1
+            if prediction == 0 and label == 0:
+                self.true_negative += 1
+            if prediction == 1 and label == 0:
+                self.false_positive += 1
+            if prediction == 0 and label == 1:
+                self.false_negative += 1
         return incorrect
 
+    def get_precision(self):
+        self.precision = self.true_positive / (self.true_positive + self.false_positive)
+        return self.precision
 
+    def get_recall(self):
+        self.recall = self.true_positive / (self.true_positive + self.false_negative)
+        return self.recall
 
-# log_reg = LogisticRegressionClassifier()
-# print(log_reg.sigmoid_function(0))
-# dist = log_reg.loss_function(1, 0)
-# print(dist)
-# print(log_reg.gradient_descent([[3, 2]], [1]))
+    def get_fmeasure(self):
+        self.f_measure = (2 * self.precision * self.recall) / (self.precision + self.recall)
+        return self.f_measure

@@ -21,6 +21,13 @@ class BayesClassifier:
         # maps feature (stem) -> (pr[feature | pos], pr[feature | neg])
         self.feature_frequency_distribution = {}
         # self.distinct_stems = set()
+        self.true_positive = 0
+        self.false_positive = 0
+        self.true_negative = 0
+        self.false_negative = 0
+        self.precision = 0
+        self.recall = 0
+        self.f_measure = 0
 
     def train(self):
         '''
@@ -146,6 +153,26 @@ class BayesClassifier:
             else:
                 incorrect += 1
                 fake.append((c, review[2]))
+            if classification == 1 and c == 1:
+                self.true_positive += 1
+            if classification == 0 and c == 0:
+                self.true_negative += 1
+            if classification == 1 and c == 0:
+                self.false_positive += 1
+            if classification == 0 and c == 1:
+                self.false_negative += 1
         
         return correct / (correct + incorrect), fake
+
+    def get_precision(self):
+        self.precision = self.true_positive / (self.true_positive + self.false_positive)
+        return self.precision
+
+    def get_recall(self):
+        self.recall = self.true_positive / (self.true_positive + self.false_negative)
+        return self.recall
+
+    def get_fmeasure(self):
+        self.f_measure = (2 * self.precision * self.recall) / (self.precision + self.recall)
+        return self.f_measure
 

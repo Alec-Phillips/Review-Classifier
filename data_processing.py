@@ -81,13 +81,17 @@ fake = sorted(fake, key=lambda x: x[1])
 # print(fake[:25])
 print(len(fake))
 print(f'Percent Correct: {percent_correct * 100}')
+nb_precision = bayes_classifier.get_precision()
+nb_recall = bayes_classifier.get_recall()
+nbfMeasure = bayes_classifier.get_fmeasure()
+print(f"\nNaive Bayes:\n\tPrecision: {nb_precision}\n\tRecall: {nb_recall}\n\tF-Measure: {nbfMeasure}")
 # ------------------------------------------------------------------------------
 
 
 # train and test using logistic regression -------------------------------------
 positive_stems = set()
 negative_stems = set()
-most_pos, most_neg = bayes_classifier.report_useful_features(100)
+most_pos, most_neg = bayes_classifier.report_useful_features(300)
 for item in most_pos:
     positive_stems.add(item[1])
 for item in most_neg:
@@ -103,7 +107,7 @@ print('')
 #         print(f'Weight {i}: {weight}')
 
 log_reg_classifier.count_bigrams()
-pos_bigrams, neg_bigrams = log_reg_classifier.most_useful_bigrams(100)
+pos_bigrams, neg_bigrams = log_reg_classifier.most_useful_bigrams(300)
 pos_bigram_set = set()
 neg_bigram_set = set()
 for item in pos_bigrams:
@@ -122,17 +126,25 @@ def count_feat1(review):
 
 def count_feat2(review):
     neg_count = 0
+    not_count = 0
     for word in review:
         if word in negative_stems:
             neg_count += 1
+        if word == "not":
+            print('found not')
+            not_count += 1
     return neg_count
 
-# def count_feat3(review):
-#     not_count = 0
-#     for word in review:
-#         if word == "not":
-#             not_count += 1
-#     return not_count
+def count_feat3(review):
+    count = 0
+    for word in review:
+        if word == "amaz":
+            count += 1
+        if word == "great":
+            count += 1
+        if word == "works":
+            count += 1
+    return count
 
 def count_feat4(review):
     count = 0
@@ -157,7 +169,7 @@ for tup in training:
     feature_counts = []
     feature_counts.append(count_feat1(review))
     feature_counts.append(count_feat2(review))
-    # feature_counts.append(count_feat3(review))
+    feature_counts.append(count_feat3(review))
     feature_counts.append(count_feat4(review))
     feature_counts.append(count_feat5(review))
     feature_count_vectors.append(feature_counts)
@@ -177,7 +189,7 @@ for tup in testing:
     feature_counts = []
     feature_counts.append(count_feat1(review))
     feature_counts.append(count_feat2(review))
-    # feature_counts.append(count_feat3(review))
+    feature_counts.append(count_feat3(review))
     feature_counts.append(count_feat4(review))
     feature_counts.append(count_feat5(review))
     testing_feature_count_vectors.append(feature_counts)
@@ -187,7 +199,12 @@ for tup in testing:
     testing_labels.append(label)
 
 incorrect = log_reg_classifier.test(testing, testing_feature_count_vectors)
-print((1000 - incorrect) / 10)
+print('Percent Correct: ', (1000 - incorrect) / 10)
+
+lr_precision = log_reg_classifier.get_precision()
+lr_recall = log_reg_classifier.get_recall()
+lr_f_measure = log_reg_classifier.get_fmeasure()
+print(f"\nLogistic Regression:\n\tPrecision: {lr_precision}\n\tRecall: {lr_recall}\n\tF-Measure: {lr_f_measure}")
 # print(incorrect)
 
 
