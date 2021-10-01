@@ -1,16 +1,18 @@
 
-from math import log
 import nltk
 import string
 import random
 
-from importlib import reload
 
-import naive_bayes_2
+# this import just reloads the local imports incase we edited them
+from importlib import reload
+# my python environment gets mad without it
+
+import naive_bayes
 import logistic_regression
-reload(naive_bayes_2)
+reload(naive_bayes)
 reload(logistic_regression)
-from naive_bayes_2 import BayesClassifier
+from naive_bayes import BayesClassifier
 from logistic_regression import LogisticRegressionClassifier
 
 
@@ -68,25 +70,15 @@ testing = labeled_reviews[len(labeled_reviews)//2:]
 
 bayes_classifier = BayesClassifier(stems, training)
 bayes_classifier.train()
-most_useful_pos, most_useful_neg = bayes_classifier.report_useful_features(10)
-print('pos:')
-for label in most_useful_pos:
-    print('\t', label)
-print('\nneg:')
-for label in most_useful_neg:
-    print('\t', label)
 
-percent_correct, fake = bayes_classifier.test(testing)
-fake = sorted(fake, key=lambda x: x[1])
-# print(fake[:25])
-print(len(fake))
-print(f'Percent Correct: {percent_correct * 100}')
+percent_correct, possible_fake = bayes_classifier.test(testing)
+possible_fake = sorted(possible_fake, key=lambda x: x[1])
+
 nb_precision = bayes_classifier.get_precision()
 nb_recall = bayes_classifier.get_recall()
 nbfMeasure = bayes_classifier.get_fmeasure()
-print(f"\nNaive Bayes:\n\tPrecision: {nb_precision}\n\tRecall: {nb_recall}\n\tF-Measure: {nbfMeasure}")
+print(f"\nNaive Bayes:\n\tPercent Correct: {percent_correct * 100}\n\tPrecision: {nb_precision}\n\tRecall: {nb_recall}\n\tF-Measure: {nbfMeasure}")
 # ------------------------------------------------------------------------------
-
 
 # train and test using logistic regression -------------------------------------
 positive_stems = set()
@@ -98,117 +90,11 @@ for item in most_neg:
     negative_stems.add(item[1])
 
 log_reg_classifier = LogisticRegressionClassifier(training)
-# weights = log_reg_classifier.train(training, positive_stems, negative_stems)
-print('')
-# for i, weight in enumerate(weights):
-#     if i == len(weights) - 1:
-#         print(f'Bias: {weight}')
-#     else:
-#         print(f'Weight {i}: {weight}')
 
-log_reg_classifier.count_bigrams()
-pos_bigrams, neg_bigrams = log_reg_classifier.most_useful_bigrams(300)
-pos_bigram_set = set()
-neg_bigram_set = set()
-for item in pos_bigrams:
-    pos_bigram_set.add(item[1])
-for item in neg_bigrams:
-    neg_bigram_set.add(item[1])
-# print(pos_bigrams)
-# print(neg_bigrams)
-
-def count_feat1(review):
-    pos_count = 0
-    for word in review:
-        if word in positive_stems:
-            pos_count += 1
-    return pos_count
-
-def count_feat2(review):
-    neg_count = 0
-    not_count = 0
-    for word in review:
-        if word in negative_stems:
-            neg_count += 1
-        if word == "not":
-            print('found not')
-            not_count += 1
-    return neg_count
-
-# def count_feat3(review):
-#     count = 0
-#     for word in review:
-#         if word == "amaz":
-#             count += 1
-#         if word == "great":
-#             count += 1
-#         if word == "works":
-#             count += 1
-#     return count
-
-def count_feat4(review):
-    count = 0
-    for i in range(len(review) - 1):
-        bigram = review[i] + ' ' + review[i + 1]
-        if bigram in pos_bigram_set:
-            count += 1
-    return count
-
-def count_feat5(review):
-    count = 0
-    for i in range(len(review) - 1):
-        bigram = review[i] + ' ' + review[i + 1]
-        if bigram in neg_bigram_set:
-            count += 1
-    return count
-
-feature_count_vectors = []
-labels = []
-for tup in training:
-    review = tup[0]
-    feature_counts = []
-    feature_counts.append(count_feat1(review))
-    feature_counts.append(count_feat2(review))
-    # feature_counts.append(count_feat3(review))
-    feature_counts.append(count_feat4(review))
-    feature_counts.append(count_feat5(review))
-    feature_count_vectors.append(feature_counts)
-    label = 1 if tup[1] == 'pos' else 0
-    labels.append(label)
-
-# for f_c in feature_count_vectors:
-#     if f_c[3] != 0 or f_c[4] != 0:
-#         print('yes')
-weights = log_reg_classifier.gradient_descent(feature_count_vectors, labels)
-# print(weights)
-
-testing_feature_count_vectors = []
-testing_labels = []
-for tup in testing:
-    review = tup[0]
-    feature_counts = []
-    feature_counts.append(count_feat1(review))
-    feature_counts.append(count_feat2(review))
-    # feature_counts.append(count_feat3(review))
-    feature_counts.append(count_feat4(review))
-    feature_counts.append(count_feat5(review))
-    testing_feature_count_vectors.append(feature_counts)
-    label = 1 if tup[1] == 'pos' else 0
-    # print(label, tup[1])
-    # print(review, feature_counts)
-    testing_labels.append(label)
-
-incorrect = log_reg_classifier.test(testing, testing_feature_count_vectors)
-print('Percent Correct: ', (1000 - incorrect) / 10)
+log_reg_classifier.train(positive_stems, negative_stems)
+incorrect = log_reg_classifier.test(testing)
 
 lr_precision = log_reg_classifier.get_precision()
 lr_recall = log_reg_classifier.get_recall()
 lr_f_measure = log_reg_classifier.get_fmeasure()
-print(f"\nLogistic Regression:\n\tPrecision: {lr_precision}\n\tRecall: {lr_recall}\n\tF-Measure: {lr_f_measure}")
-# print(incorrect)
-
-
-
-
-
-
+print(f"\nLogistic Regression:\n\tPercent Correct: {(1000 - incorrect) / 10}\n\tPrecision: {lr_precision}\n\tRecall: {lr_recall}\n\tF-Measure: {lr_f_measure}")

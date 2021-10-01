@@ -1,8 +1,6 @@
 
 import math
 
-from feature_count_funcs import feature_count_funcs
-
 class LogisticRegressionClassifier:
 
     def __init__(self, labeled_reviews):
@@ -14,7 +12,13 @@ class LogisticRegressionClassifier:
         self.labeled_reviews = labeled_reviews
         self.positive_bigram_counts = {}
         self.negative_bigram_counts = {}
+        self.most_useful_pos_bigrams = []
+        self.most_useful_neg_bigrams = []
         self.bigram_frequency_distribution = {}
+        self.positive_stems = set()
+        self.negative_stems = set()
+        self.pos_bigram_set = set()
+        self.neg_bigram_set = set()
         self.true_positive = 0
         self.false_positive = 0
         self.true_negative = 0
@@ -74,29 +78,32 @@ class LogisticRegressionClassifier:
             dot += (weight * x[i])
         return dot + b
 
-    def train(self, training_data, pos_word_set, neg_word_set):
-        '''
-        determines the feature counts for each review
-        and uses gradient descent to optimize weights
-        for each feature
-        returns: the vector of optimized weights
-        '''
-        feature_counts = []
+    def train(self, positive_stems, negative_stems):
+        self.count_bigrams()
+        pos_bigrams, neg_bigrams = self.most_useful_bigrams(300)
+        pos_bigram_set = set()
+        neg_bigram_set = set()
+        self.positive_stems = positive_stems
+        self.negative_stems = negative_stems
+        for item in pos_bigrams:
+            pos_bigram_set.add(item[1])
+        for item in neg_bigrams:
+            neg_bigram_set.add(item[1])
+        self.pos_bigram_set = pos_bigram_set
+        self.neg_bigram_set = neg_bigram_set
+        feature_count_vectors = []
         labels = []
-        for review in training_data:
-            if review[1] == 'pos':
-                labels.append(1)
-            else:
-                labels.append(0)
-            curr_feature_counts = []
-            # for func in feature_count_funcs:
-            count1 = feature_count_funcs[0](pos_word_set, review[0])
-            curr_feature_counts.append(count1)
-            count2 = feature_count_funcs[1](neg_word_set, review[0])
-            curr_feature_counts.append(count2)
-            feature_counts.append(curr_feature_counts)
-        weights = self.gradient_descent(feature_counts, labels)
-        return weights
+        for tup in self.labeled_reviews:
+            review = tup[0]
+            feature_counts = []
+            feature_counts.append(self.count_feat1(review, positive_stems))
+            feature_counts.append(self.count_feat2(review, negative_stems))
+            feature_counts.append(self.count_feat3(review, pos_bigram_set))
+            feature_counts.append(self.count_feat4(review, neg_bigram_set))
+            feature_count_vectors.append(feature_counts)
+            label = 1 if tup[1] == 'pos' else 0
+            labels.append(label)
+        self.gradient_descent(feature_count_vectors, labels)
 
     def classify(self, feature_results):
         '''
@@ -121,23 +128,19 @@ class LogisticRegressionClassifier:
                 for i in range(len(review[0]) - 1):
                     total_stems += 1
                     bigram = review[0][i] + ' ' + review[0][i + 1]
-                    # self.total_positive += 1
                     if bigram in self.positive_bigram_counts:
                         self.positive_bigram_counts[bigram] = self.positive_bigram_counts.get(bigram) + 1
                     else:
                         self.positive_bigram_counts[bigram] = 1
-                        # self.distinct_stems.add(stem)
             else:
                 label_frequencies['neg'] = label_frequencies.get('neg') + 1
                 for i in range(len(review[0]) - 1):
                     total_stems += 1
                     bigram = review[0][i] + ' ' + review[0][i + 1]
-                    # self.total_negative += 1
                     if bigram in self.negative_bigram_counts:
                         self.negative_bigram_counts[bigram] = self.negative_bigram_counts.get(bigram) + 1
                     else:
                         self.negative_bigram_counts[bigram] = 1
-                        # self.distinct_stems.add(stem)
         total_labels = 0
         for _, frequency in label_frequencies.items():
             total_labels += frequency
@@ -165,16 +168,27 @@ class LogisticRegressionClassifier:
                 neg_usefulness.append([feature_neg_usefulness, feature])
             except:
                 pass
-
         pos_usefulness.sort(reverse=True)
         neg_usefulness.sort(reverse=True)
-
         most_useful_pos = pos_usefulness[:num_returned]
         most_useful_neg = neg_usefulness[:num_returned]
-
+        self.most_useful_pos_bigrams = most_useful_pos
+        self.most_useful_neg_bigrams = most_useful_neg
         return most_useful_pos, most_useful_neg
 
-    def test(self, testing_data, feature_count_vectors):
+    def test(self, testing_data):
+        feature_count_vectors = []
+        testing_labels = []
+        for tup in testing_data:
+            review = tup[0]
+            feature_counts = []
+            feature_counts.append(self.count_feat1(review, self.positive_stems))
+            feature_counts.append(self.count_feat2(review, self.negative_stems))
+            feature_counts.append(self.count_feat3(review, self.pos_bigram_set))
+            feature_counts.append(self.count_feat4(review, self.neg_bigram_set))
+            feature_count_vectors.append(feature_counts)
+            label = 1 if tup[1] == 'pos' else 0
+            testing_labels.append(label)
         incorrect = 0
         for i, tup in enumerate(testing_data):
             review = tup[0]
@@ -182,7 +196,6 @@ class LogisticRegressionClassifier:
             current_feature_counts = feature_count_vectors[i]
             z = self.get_y_hat(self.weights, current_feature_counts, self.bias)
             prob_pos = self.sigmoid_function(z)
-            # print(prob_pos, label)
             prediction = 1 if prob_pos > .5 else 0
             if prediction != label:
                 incorrect += 1
@@ -207,3 +220,38 @@ class LogisticRegressionClassifier:
     def get_fmeasure(self):
         self.f_measure = (2 * self.precision * self.recall) / (self.precision + self.recall)
         return self.f_measure
+
+    # functions to get feature counts for each review
+    def count_feat1(self, review, positive_stems):
+        pos_count = 0
+        for word in review:
+            if word in positive_stems:
+                pos_count += 1
+        return pos_count
+
+    def count_feat2(self, review, negative_stems):
+        neg_count = 0
+        not_count = 0
+        for word in review:
+            if word in negative_stems:
+                neg_count += 1
+            if word == "not":
+                print('found not')
+                not_count += 1
+        return neg_count
+
+    def count_feat3(self, review, pos_bigram_set):
+        count = 0
+        for i in range(len(review) - 1):
+            bigram = review[i] + ' ' + review[i + 1]
+            if bigram in pos_bigram_set:
+                count += 1
+        return count
+
+    def count_feat4(self, review, neg_bigram_set):
+        count = 0
+        for i in range(len(review) - 1):
+            bigram = review[i] + ' ' + review[i + 1]
+            if bigram in neg_bigram_set:
+                count += 1
+        return count
