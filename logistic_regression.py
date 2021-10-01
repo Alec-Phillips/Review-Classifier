@@ -4,9 +4,6 @@ import math
 class LogisticRegressionClassifier:
 
     def __init__(self, labeled_reviews):
-        '''
-        TODO: include params needed to perform gradient descent
-        '''
         self.weights = []
         self.bias = 0
         self.labeled_reviews = labeled_reviews
