@@ -3,12 +3,17 @@ import nltk
 import string
 import random
 
+
+# this import just reloads the local imports incase we edited them
 from importlib import reload
+# my python environment gets mad without it
 
-import naive_bayes_2
-reload(naive_bayes_2)
-from naive_bayes_2 import BayesClassifier
-
+import naive_bayes
+import logistic_regression
+reload(naive_bayes)
+reload(logistic_regression)
+from naive_bayes import BayesClassifier
+from logistic_regression import LogisticRegressionClassifier
 
 
 # get the reviews and label them positive or negative --------------------------
@@ -51,7 +56,7 @@ tokens = [word for word in tokens if word not in stopwords]
 labeled_reviews = [([token for token in review[0] if token not in stopwords], review[1], review[2]) for review in labeled_reviews]
 # ------------------------------------------------------------------------------
 
-# remove stopwords -------------------------------------------------------------
+# stem -------------------------------------------------------------
 from nltk.stem.porter import PorterStemmer
 stemmer = PorterStemmer()
 stems = [stemmer.stem(word) for word in tokens]
@@ -63,20 +68,33 @@ random.shuffle(labeled_reviews)
 training = labeled_reviews[:len(labeled_reviews)//2]
 testing = labeled_reviews[len(labeled_reviews)//2:]
 
-classifier = BayesClassifier(stems, training)
-classifier.train()
-most_useful_pos, most_useful_neg = classifier.report_useful_features(10)
-print('pos:')
-for label in most_useful_pos:
-    print('\t', label)
-print('\nneg:')
-for label in most_useful_neg:
-    print('\t', label)
+bayes_classifier = BayesClassifier(stems, training)
+bayes_classifier.train()
 
-percent_correct, fake = classifier.test(testing)
-fake = sorted(fake, key=lambda x: x[1])
-# print(fake[:25])
-print(len(fake))
-print(f'Percent Correct: {percent_correct * 100}')
+percent_correct, possible_fake = bayes_classifier.test(testing)
+possible_fake = sorted(possible_fake, key=lambda x: x[1])
 
+nb_precision = bayes_classifier.get_precision()
+nb_recall = bayes_classifier.get_recall()
+nbfMeasure = bayes_classifier.get_fmeasure()
+print(f"\nNaive Bayes:\n\tPercent Correct: {percent_correct * 100}\n\tPrecision: {nb_precision}\n\tRecall: {nb_recall}\n\tF-Measure: {nbfMeasure}")
+# ------------------------------------------------------------------------------
 
+# train and test using logistic regression -------------------------------------
+positive_stems = set()
+negative_stems = set()
+most_pos, most_neg = bayes_classifier.report_useful_features(300)
+for item in most_pos:
+    positive_stems.add(item[1])
+for item in most_neg:
+    negative_stems.add(item[1])
+
+log_reg_classifier = LogisticRegressionClassifier(training)
+
+log_reg_classifier.train(positive_stems, negative_stems)
+incorrect = log_reg_classifier.test(testing)
+
+lr_precision = log_reg_classifier.get_precision()
+lr_recall = log_reg_classifier.get_recall()
+lr_f_measure = log_reg_classifier.get_fmeasure()
+print(f"\nLogistic Regression:\n\tPercent Correct: {(1000 - incorrect) / 10}\n\tPrecision: {lr_precision}\n\tRecall: {lr_recall}\n\tF-Measure: {lr_f_measure}")
